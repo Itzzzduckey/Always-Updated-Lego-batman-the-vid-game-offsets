@@ -1,0 +1,207 @@
+
+-------------------------------------------------------------
+[HEALTH RELATED] (Blue)
+-------------------------------------------------------------
+1. Inf Health
+   - AOB Signature: F3 0F 11 B1 C0 04 00 00
+   - Injection Offset: +6A1980
+   - Pointers Captured: [hhh], [hh]
+   - Key Offsets: +4C0 (Current Health), +4C8 (Max Health), +053C (Player/Squad Flag), +0414 (Vehicle Flag)
+   
+   -> Player Only (Script)
+      - Toggles Symbol [h1] to 1 (Player Only Godmode)
+      - Current Health: [hhh]+4C0 (Float)
+      - Max Health: [hhh]+4C8 (Float)
+
+   -> Squad only (Script)
+      - Toggles Symbol [h2] to 1 (Squad Godmode)
+
+   -> Vehicle only (Script)
+      - Toggles Symbol [h3] to 1 (Vehicle Godmode / Indestructible)
+
+2. Health Regenaration multiplier (5)
+   - AOB Signature: 8B 87 D8 04 00 00 89
+   - Injection Offset: +6A2532
+   - Pointers Captured: [reg]
+   - Key Offsets: +4D8 (Regen Rate), +4DC (Regen Target)
+   
+   -> Current Address: [reg]+4D8 (Float)
+
+
+-------------------------------------------------------------
+[ATTACK RELATED] (Orange)
+-------------------------------------------------------------
+1. 1 Hit Kill
+   - AOB Signature: 75 0A 44 0F 2F 87 C0 04 00 00
+   - Injection Offset: +6A2381
+   - Key Offsets: +053C (Enemy Check), +4C0 (Enemy Health)
+
+2. Inf Combo Time
+   - AOB Signature: F3 0F 11 8F B8 05 00 00
+   - Injection Offset: +BB653B
+   - Key Offsets: +5B8 (Combo Timer - Locked to 8.0)
+
+3. Combo Set Multiplier(+1)
+   - AOB Signature: FF 83 14 0B 00 00 F3
+   - Injection Offset: +BB46F1
+   - Key Offsets: +0B14 (Combo Set Count)
+   
+   -> Set Combo Set Multiplier Value(+1): Address 'muls' (4 Bytes)
+
+4. Combo Hit Multiplier(+1)
+   - AOB Signature: FF 83 18 0A 00 00
+   - Injection Offset: +BB620D
+   - Key Offsets: +0A18 (Combo Hit Count)
+   
+   -> Set Combo Hit Multiplier Value(+1): Address 'mults' (4 Bytes)
+
+5. Instant Fire T-21
+   - AOB Signature: F3 0F 58 BB 20 08 00 00
+   - Injection Offset: +548C78
+   - Key Offsets: +0820 (Fire Rate/Charge - Forced to 2.000044346)
+
+6. Inf Ammo
+   - AOB Signature: 89 41 18 48 8B 87 F0 00 00 00
+   - Injection Offset: +625A2B
+   - Pointers Captured: [muni]
+   - Key Offsets: +018 (Current Ammo), +014 (Max Ammo)
+   
+   -> Current Value: [muni]+18 (4 Bytes)
+
+7. Almost No Recoil
+   - AOB Signature 1: 66 C7 81 B1 01 00 00 00 00 (Offset +DB7750)
+   - AOB Signature 2: D2 0F 28 DA 0F C2 DC 02 0F 28 (Offset +DB8404)
+   - Key Offsets: +01B1 (Recoil Write), Vector Calculations Nullified
+
+
+-------------------------------------------------------------
+[CURRENCY RELATED] (Light Blue / Purple)
+-------------------------------------------------------------
+1. Change Stub Multiplier/Change Stub Value
+   - AOB Signature: 49 03 FE 48 89 BC 24 98 00 00 00
+   - Injection Offset: +281CF34
+   - Pointers Captured: [gg]
+   - Key Offsets: Adds 'mul' value to Stubs
+   
+   -> Stubs Value: [gg] (4 Bytes)
+   -> Edit Multiplier Value (x10): Address 'mul' (4 Bytes)
+
+2. Kyber Bricks Amount (Cannot be deactivated)
+   - AOB Signature: 8B 98 CC 00 00 00 44 8B A0 0C 01 00 00 E8 57
+   - Injection Offset: +1910527
+   - Pointers Captured: [bri]
+   - Key Offsets: +0CC (Kyber Brick Amount), +10C (Secondary Tracker)
+   
+   -> Kyber Bricks Value: [bri]+CC (4 Bytes)
+
+3. Kyber Bricks only Multiplier
+   - AOB Signature: 8B 98 CC 00 00 00 44 8B A0 0C 01 00 00 E8 C7
+   - Injection Offset: +1BC94B7
+   - Key Offsets: +0CC (Kyber Brick Addition)
+   
+   -> Edit Multiplier(x2): Address 'kb' (4 Bytes)
+
+4. Datacard and Kyber Bricks Multiplier
+   - AOB Signature: 03 8E A4 00 00 00
+   - Injection Offset: +2A458B5
+   - Key Offsets: +0A4 (Datacard/Kyber Tracker)
+   
+   -> Multiplier Value: Address 'cpk' (4 Bytes)
+
+
+-------------------------------------------------------------
+[MOVEMENT & ANIMATION RELATED] (Green) - Extension Features
+-------------------------------------------------------------
+1. No Animation / Cartman Walk
+   - Description: Forces the character into a broken idle/T-Pose state so they glide across the floor without moving their legs.
+   - Target AOB Signature: F3 0F 11 86 ?? ?? ?? ?? 0F 57 (Example: Animation speed/blend write)
+   - Method: Hook the animation speed float. Force the value to 0.0 to freeze the current frame, or force the Animation State ID to 0.
+   - Key Offsets (Typical for this engine):
+     -> +0120 = Animation State ID (4 Bytes) [Force to 0 for T-Pose/Glide]
+     -> +0128 = Animation Playback Speed (Float) [Force to 0 to freeze anim]
+
+2. Walk Through Walls (Disable Collision)
+   - Description: Tricks the game into thinking the player is airborne, disabling horizontal collision.
+   - Target AOB Signature: 88 81 ?? ?? ?? ?? 0F B6 D0 (Example: IsGrounded boolean write)
+   - Method: Find the "IsGrounded" or "CollisionEnabled" boolean. Hook the write instruction and force the value to 0.
+   - Key Offsets (Typical for this engine):
+     -> +01E0 = Is Grounded Flag (1 Byte) [Force to 0 to walk through walls]
+     -> +01E4 = Collision Enabled Flag (1 Byte) [Force to 0]
+
+3. Noclip (Free Movement)
+   - Description: Disables collision completely and allows free flight using camera coordinates.
+   - Target AOB Signature: F3 0F 11 ?? ?? ?? ?? ?? F3 0F 11 (Example: Coordinate X/Y/Z write)
+   - Method: Hook the coordinate writes. Use Auto Assembler to inject a script that adds/subtracts from X/Y/Z based on keypresses (e.g., Arrow keys or W/S) while collision is disabled.
+   - Key Offsets (Typical for this engine):
+     -> +0050 = Coordinate X (Float)
+     -> +0054 = Coordinate Y (Float)
+     -> +0058 = Coordinate Z (Float)
+     -> +0060 = Rotation / Camera Angle (Float) [Used to calculate forward movement vector]
+
+
+=============================================================
+QUICK REFERENCE: ALL MEMORY OFFSETS
+=============================================================
+[ENTITY / CORE]
++0050 = Coordinate X (Float)
++0054 = Coordinate Y (Float)
++0058 = Coordinate Z (Float)
++0120 = Animation State ID (4 Bytes)
++0128 = Animation Speed (Float)
++01E0 = Is Grounded Flag (1 Byte)
+
+[HEALTH]
++0414 = Is Vehicle Flag (0=False)
++04C0 = Current Health (Float)
++04C4 = Previous Health (Float)
++04C8 = Max Health (Float)
++04D0 = Health Min Clamp (Float)
++04D8 = Health Regen Rate (Float)
++04DC = Health Regen Target (Float)
++053C = Is Player/Squad Flag (1=True)
+
+[COMBAT & WEAPONS]
++01B1 = Recoil (2 Bytes)
++0570 = Weapon Timer Cap (Float)
++05B8 = Combo Timer (Float)
++05BC = Combo Timer Sub-value (Float)
++05C0 = Combo Active Flag (Byte)
++0820 = Weapon Fire Rate/Charge (Float)
++0A18 = Combo Hit Count (4 Bytes)
++0A5C = Combo State (7=Default)
++0A70 = Combo Tracker (4 Bytes)
++0A74 = Combo Tracker 2 (4 Bytes)
++0A7A = Combo Flag (Byte)
++0B11 = Combo Type Flag (Byte)
++0B14 = Combo Set Count (4 Bytes)
+
+[CURRENCY]
++000CC = Kyber Bricks (4 Bytes)
++0010C = Kyber Brick Secondary Tracker
++000A4 = Datacards (4 Bytes)
+
+[AMMO]
++014  = Max Ammo (4 Bytes)
++018  = Current Ammo (4 Bytes)
+
+=============================================================
+QUICK REFERENCE: ALL CHEAT ENGINE SYMBOLS
+=============================================================
+[POINTERS]
+[hhh]   = Player Base Entity Address
+[hh]    = Player Base Entity (Alt)
+[reg]   = Health Regen Base Address
+[muni]  = Ammo Base Address
+[gg]    = Stubs Base Address
+[bri]   = Kyber Bricks Base Address
+
+[TOGGLES & MULTIPLIERS]
+h1      = Player Godmode Toggle (1=On)
+h2      = Squad Godmode Toggle (1=On)
+h3      = Vehicle Godmode Toggle (1=On)
+r       = Regen Multiplier Toggle
+muls    = Combo Set Multiplier Value (Default 1)
+mults   = Combo Hit Multiplier Value (Default 1)
+mul     = Stubs Multiplier Value (Default 1)
+kb      = Kyber Bricks Multiplier Value (Default 1)
+cpk     = Datacard/Kyber Multiplier Value (Default 1)
