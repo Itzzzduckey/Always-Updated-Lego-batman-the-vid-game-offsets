@@ -1,0 +1,31 @@
+    hWnd                             = 0x6DE9430
+    Messiah__IObject__Initalizer     = 0x2CF160
+    Messiah__IObject__Deconstructor  = 0x2CF890
+    Messiah_WorldToScreen            = 0x940F60
+    Messiah__GetBoneTransform        = 0xD2BEC0
+    Messiah__IEntity__Constructor    = 0x780C90
+    Messiah__IEntity                 = 0x3D80048
+    Messiah__ICamera                 = 0x3F9B1D0
+    Messiah__AnimationCore__Pose     = 0x3FA2F18
+    Messiah__SkeletonComponent       = 0x4103698
+    Messiah__Actor                   = 0x5001C20
+    Messiah__ActorComponent          = 0x4138AB0
+    Messiah__IArea                   = 0x3FBAA68
+    Messiah__TachComponent           = 0x4101FC8
+    Messiah__FontType                = 0x3C189F0
+    Messiah__ClientEngine            = 0x65F7AD0
+    Messiah__EntityList              = 0x6E4D0D8
+    ClientEngine_to_IGameplay        = 0x58
+    ClientPlayer_to_localActor       = 0x288
+    ClientPlayer_to_camera           = 0x238
+    actorInstance_to_actorProps      = 0x278
+    IEntity_to_entityMask            = 0x2E0
+    IEntity_to_IArea                 = 0x88
+    pose_to_BipedPose                = 0x90
+
+
+
+/////these are steam offsets for blood strike not the global version//
+
+
+u.unknown(:
