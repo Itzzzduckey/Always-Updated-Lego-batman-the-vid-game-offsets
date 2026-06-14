@@ -1,0 +1,587 @@
+
+
+=== ALL AOB SIGNATURES (PATTERNS) ===
+8B B2 D0 7B 00 00                 → Main Hook (Total Studs pointer)
+D9 05 6C CA 9C 00 D9              → Hide Character Portraits
+D9 05 50 08 AB 00 D9              → Hide Super Bar
+D9 05 A8 CA 9C 00 D9 1C           → Hide Stud Counter
+8B 0D 24 6F AC 00 D9              → Hide Game Hints
+0F BE 80 C7 15 00 00              → Quick Boss Encounters
+
+
+=== MAIN HOOK SCRIP ===
+[ENABLE]
+aobscanmodule(One,LEGOBatman.exe,8B B2 D0 7B 00 00)
+alloc(newmem,$1000)
+alloc(Two,4)
+registersymbol(One)
+registersymbol(Two)
+label(code)
+label(return)
+Two:
+  dd 0
+newmem:
+code:
+  mov [Two],edx
+  mov esi,[edx+00007BD0]
+  jmp return
+One:
+  jmp newmem
+  nop
+return:
+[DISABLE]
+One:
+  db 8B B2 D0 7B 00 00
+unregistersymbol(One)
+unregistersymbol(Two)
+dealloc(newmem)
+dealloc(Two)
+
+
+=== GENERAL SECTION ===
+
+Hide Character (Portraits + Hearts)
+AOB: D9 05 6C CA 9C 00 D9
+[ENABLE]
+aobscanmodule(Three,LEGOBatman.exe,D9 05 6C CA 9C 00 D9)
+alloc(newmem,$1000)
+label(code)
+label(return)
+newmem:
+code:
+  fldz
+  jmp return
+Three:
+  jmp newmem
+  nop
+return:
+registersymbol(Three)
+[DISABLE]
+Three:
+  db D9 05 6C CA 9C 00
+unregistersymbol(Three)
+dealloc(newmem)
+
+Hide Super Bar
+AOB: D9 05 50 08 AB 00 D9
+[ENABLE]
+aobscanmodule(Four,LEGOBatman.exe,D9 05 50 08 AB 00 D9)
+alloc(newmem,$1000)
+label(code)
+label(return)
+newmem:
+code:
+  fldz
+  jmp return
+Four:
+  jmp newmem
+  nop
+return:
+registersymbol(Four)
+[DISABLE]
+Four:
+  db D9 05 50 08 AB 00
+unregistersymbol(Four)
+dealloc(newmem)
+
+Hide Stud Counter
+AOB: D9 05 A8 CA 9C 00 D9 1C
+[ENABLE]
+aobscanmodule(Five,LEGOBatman.exe,D9 05 A8 CA 9C 00 D9 1C)
+alloc(newmem,$1000)
+label(code)
+label(return)
+newmem:
+code:
+  fldz
+  jmp return
+Five:
+  jmp newmem
+  nop
+return:
+registersymbol(Five)
+[DISABLE]
+Five:
+  db D9 05 A8 CA 9C 00
+unregistersymbol(Five)
+dealloc(newmem)
+
+Hide Game Hints
+AOB: 8B 0D 24 6F AC 00 D9
+[ENABLE]
+aobscanmodule(Six,LEGOBatman.exe,8B 0D 24 6F AC 00 D9)
+alloc(newmem,$1000)
+label(code)
+label(return)
+newmem:
+code:
+  xor ecx,ecx
+  mov [LEGOBatman.exe+6C6F24],ecx
+  jmp return
+Six:
+  jmp newmem
+  nop
+return:
+registersymbol(Six)
+[DISABLE]
+Six:
+  db 8B 0D 24 6F AC 00
+unregistersymbol(Six)
+dealloc(newmem)
+
+Hide Everything (All above combined)
+Uses the 4 AOBs: D9 05 6C CA 9C 00 D9 + D9 05 50 08 AB 00 D9 + D9 05 A8 CA 9C 00 D9 1C + 8B 0D 24 6F AC 00 D9
+
+Quick Boss Encounters
+AOB: 0F BE 80 C7 15 00 00
+[ENABLE]
+aobscanmodule(Seven,LEGOBatman.exe,0F BE 80 C7 15 00 00)
+alloc(newmem,$1000)
+label(code)
+label(return)
+newmem:
+code:
+  xor eax,eax
+  jmp return
+Seven:
+  jmp newmem
+  nop 2
+return:
+registersymbol(Seven)
+[DISABLE]
+Seven:
+  db 0F BE 80 C7 15 00 00
+unregistersymbol(Seven)
+dealloc(newmem)
+
+Random LEGO Figure (Lua Script - Click on character select)
+{$lua}
+  if syntaxcheck then return end
+  math.randomseed(os.time()+math.random())
+  local blocklist = {[75] = true,[76] = true,[92] = true,
+  [101] = true,[126] = true,[167] = true,[187] = true,[188] = true}
+  local function randomFigure()
+  local v
+  repeat
+  v = math.random(0,285)
+  until not blocklist[v]
+  return v
+  end
+  local lego = randomFigure()
+  local figure
+  repeat
+  figure = randomFigure()
+  until figure ~= lego
+  local t = createTimer()
+  t.Interval = 50
+  t.OnTimer = function(timer)
+  writeSmallInteger("LEGOBatman.exe+6CA814",lego)
+  writeSmallInteger("LEGOBatman.exe+6CA816",figure)
+  memrec.Active = false
+  timer.destroy()
+  end
+  t.Enabled = true
+{$asm}
+
+
+=== PLAYER 1 ===
+
+Player 1 Studs
+Address: LEGOBatman.exe+5C594C (4 Bytes)
+
+Player 1 Total Studs
+Requires main hook above
+Address: [Two]+7BD0 (4 Bytes)
+
+Player 1 LEGO Figure
+Address: LEGOBatman.exe+6CA814 (2 Bytes)
+
+
+=== PLAYER 2 ===
+
+Player 2 Studs
+Address: LEGOBatman.exe+5C595C (4 Bytes)
+
+Player 2 LEGO Figure
+Address: LEGOBatman.exe+6CA816 (2 Bytes)
+
+
+=== ALL EXTRAS (Separate Lua Scripts) ===
+
+Adaptive Difficulty
+{$lua}
+  if adaptiveDifficulty == nil then
+  local addr = getAddress("LEGOBatman.exe+537DE0")
+  adaptiveDifficulty = createTimer()
+  adaptiveDifficulty.Interval = 1000
+  adaptiveDifficulty.OnTimer = function() writeBytes(addr,0) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if adaptiveDifficulty then
+  writeBytes("LEGOBatman.exe+537DE0",1)
+  adaptiveDifficulty.destroy()
+  adaptiveDifficulty = nil
+  end
+{$asm}
+
+Always Score Multiply
+{$lua}
+  if alwaysMultiply == nil then
+  local addr = getAddress("LEGOBatman.exe+537F84")
+  alwaysMultiply = createTimer()
+  alwaysMultiply.Interval = 1000
+  alwaysMultiply.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if alwaysMultiply then
+  writeBytes("LEGOBatman.exe+537F84",0)
+  alwaysMultiply.destroy()
+  alwaysMultiply = nil
+  end
+{$asm}
+
+Beep Beep
+{$lua}
+  if beepBeep == nil then
+  local addr = getAddress("LEGOBatman.exe+537E18")
+  beepBeep = createTimer()
+  beepBeep.Interval = 1000
+  beepBeep.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if beepBeep then
+  writeBytes("LEGOBatman.exe+537E18",0)
+  beepBeep.destroy()
+  beepBeep = nil
+  end
+{$asm}
+
+Character Studs
+{$lua}
+  if characterStuds == nil then
+  local addr = getAddress("LEGOBatman.exe+537F30")
+  characterStuds = createTimer()
+  characterStuds.Interval = 1000
+  characterStuds.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if characterStuds then
+  writeBytes("LEGOBatman.exe+537F30",0)
+  characterStuds.destroy()
+  characterStuds = nil
+  end
+{$asm}
+
+Disguise
+{$lua}
+  if disguise == nil then
+  local addr = getAddress("LEGOBatman.exe+537E50")
+  disguise = createTimer()
+  disguise.Interval = 1000
+  disguise.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if disguise then
+  writeBytes("LEGOBatman.exe+537E50",0)
+  disguise.destroy()
+  disguise = nil
+  end
+{$asm}
+
+Extra Hearts
+{$lua}
+  if extraHearts == nil then
+  local addr = getAddress("LEGOBatman.exe+537FF4")
+  extraHearts = createTimer()
+  extraHearts.Interval = 1000
+  extraHearts.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if extraHearts then
+  writeBytes("LEGOBatman.exe+537FF4",0)
+  extraHearts.destroy()
+  extraHearts = nil
+  end
+{$asm}
+
+Extra Toggle
+{$lua}
+  if extraToggle == nil then
+  local addr = getAddress("LEGOBatman.exe+537E6C")
+  extraToggle = createTimer()
+  extraToggle.Interval = 1000
+  extraToggle.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if extraToggle then
+  writeBytes("LEGOBatman.exe+537E6C",0)
+  extraToggle.destroy()
+  extraToggle = nil
+  end
+{$asm}
+
+Fast Build
+{$lua}
+  if fastBuild == nil then
+  local addr = getAddress("LEGOBatman.exe+537FA0")
+  fastBuild = createTimer()
+  fastBuild.Interval = 1000
+  fastBuild.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if fastBuild then
+  writeBytes("LEGOBatman.exe+537FA0",0)
+  fastBuild.destroy()
+  fastBuild = nil
+  end
+{$asm}
+
+Ice Rink
+{$lua}
+  if iceRink == nil then
+  local addr = getAddress("LEGOBatman.exe+537E34")
+  iceRink = createTimer()
+  iceRink.Interval = 1000
+  iceRink.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if iceRink then
+  writeBytes("LEGOBatman.exe+537E34",0)
+  iceRink.destroy()
+  iceRink = nil
+  end
+{$asm}
+
+Immune to Freeze
+{$lua}
+  if immuneFreeze == nil then
+  local addr = getAddress("LEGOBatman.exe+537FBC")
+  immuneFreeze = createTimer()
+  immuneFreeze.Interval = 1000
+  immuneFreeze.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if immuneFreeze then
+  writeBytes("LEGOBatman.exe+537FBC",0)
+  immuneFreeze.destroy()
+  immuneFreeze = nil
+  end
+{$asm}
+
+Invincibility
+{$lua}
+  if invincibility == nil then
+  local addr = getAddress("LEGOBatman.exe+538010")
+  invincibility = createTimer()
+  invincibility.Interval = 1000
+  invincibility.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if invincibility then
+  writeBytes("LEGOBatman.exe+538010",0)
+  invincibility.destroy()
+  invincibility = nil
+  end
+{$asm}
+
+Minikit Detector
+{$lua}
+  if minikitDetector == nil then
+  local addr = getAddress("LEGOBatman.exe+537F4C")
+  minikitDetector = createTimer()
+  minikitDetector.Interval = 1000
+  minikitDetector.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if minikitDetector then
+  writeBytes("LEGOBatman.exe+537F4C",0)
+  minikitDetector.destroy()
+  minikitDetector = nil
+  end
+{$asm}
+
+Power Brick Detector
+{$lua}
+  if brickDetector == nil then
+  local addr = getAddress("LEGOBatman.exe+537F68")
+  brickDetector = createTimer()
+  brickDetector.Interval = 1000
+  brickDetector.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if brickDetector then
+  writeBytes("LEGOBatman.exe+537F68",0)
+  brickDetector.destroy()
+  brickDetector = nil
+  end
+{$asm}
+
+Regenerate Hearts
+{$lua}
+  if regenerateHearts == nil then
+  local addr = getAddress("LEGOBatman.exe+537FD8")
+  regenerateHearts = createTimer()
+  regenerateHearts.Interval = 1000
+  regenerateHearts.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if regenerateHearts then
+  writeBytes("LEGOBatman.exe+537FD8",0)
+  regenerateHearts.destroy()
+  regenerateHearts = nil
+  end
+{$asm}
+
+Score x2
+{$lua}
+  if score2 == nil then
+  local addr = getAddress("LEGOBatman.exe+537E88")
+  score2 = createTimer()
+  score2.Interval = 1000
+  score2.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if score2 then
+  writeBytes("LEGOBatman.exe+537E88",0)
+  score2.destroy()
+  score2 = nil
+  end
+{$asm}
+
+Score x4
+{$lua}
+  if score4 == nil then
+  local addr = getAddress("LEGOBatman.exe+537EA4")
+  score4 = createTimer()
+  score4.Interval = 1000
+  score4.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if score4 then
+  writeBytes("LEGOBatman.exe+537EA4",0)
+  score4.destroy()
+  score4 = nil
+  end
+{$asm}
+
+Score x6
+{$lua}
+  if score6 == nil then
+  local addr = getAddress("LEGOBatman.exe+537EC0")
+  score6 = createTimer()
+  score6.Interval = 1000
+  score6.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if score6 then
+  writeBytes("LEGOBatman.exe+537EC0",0)
+  score6.destroy()
+  score6 = nil
+  end
+{$asm}
+
+Score x8
+{$lua}
+  if score8 == nil then
+  local addr = getAddress("LEGOBatman.exe+537EDC")
+  score8 = createTimer()
+  score8.Interval = 1000
+  score8.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if score8 then
+  writeBytes("LEGOBatman.exe+537EDC",0)
+  score8.destroy()
+  score8 = nil
+  end
+{$asm}
+
+Score x10
+{$lua}
+  if score10 == nil then
+  local addr = getAddress("LEGOBatman.exe+537EF8")
+  score10 = createTimer()
+  score10.Interval = 1000
+  score10.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if score10 then
+  writeBytes("LEGOBatman.exe+537EF8",0)
+  score10.destroy()
+  score10 = nil
+  end
+{$asm}
+
+Silhouettes
+{$lua}
+  if silhouettes == nil then
+  local addr = getAddress("LEGOBatman.exe+537DFC")
+  silhouettes = createTimer()
+  silhouettes.Interval = 1000
+  silhouettes.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if silhouettes then
+  writeBytes("LEGOBatman.exe+537DFC",0)
+  silhouettes.destroy()
+  silhouettes = nil
+  end
+{$asm}
+
+Stud Magnet
+{$lua}
+  if studMagnet == nil then
+  local addr = getAddress("LEGOBatman.exe+537F14")
+  studMagnet = createTimer()
+  studMagnet.Interval = 1000
+  studMagnet.OnTimer = function() writeBytes(addr,1) end
+  end
+{$asm}
+[DISABLE]
+{$lua}
+  if studMagnet then
+  writeBytes("LEGOBatman.exe+537F14",0)
+  studMagnet.destroy()
+  studMagnet = nil
+  end
+{$asm}
