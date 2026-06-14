@@ -1,0 +1,163 @@
+
+1. MAIN POINTERS & AOB SCANS
+================================================================================
+
+AOB - Main Player Base (P_Base):
+aobscanmodule(PBase,Obscure-Win64-Shipping.exe,48 8B 07 FF 90 48 07 00 00)
+alloc(P_Base,8)
+registersymbol(P_Base)
+PBase:
+  mov [P_Base],rdi
+  jmp return
+
+AOB - Waypoint:
+aobscanmodule(WayPoint,Obscure-Win64-Shipping.exe,4C 8B ? 45 33 ? 48 8B ? 48 8B ? 41 FF ? ? ? ? ? 48 8B ? ? ? B0)
+registersymbol(WayPoint_)
+
+AOB - Inf HP (example):
+aobscanmodule(InfHP,Obscure-Win64-Shipping.exe,F3 0F 11 89 C8 02 00 00)
+
+================================================================================
+2. CORE OFFSETS (Relative to P_Base)
+================================================================================
+
+Player:
+  • Position:      [[P_Base]+290] + 1D0   (X +1D0, Y +1D4, Z +1D8)
+  • Sprint Speed:  P_Base + 608
+  • Walk Speed:    P_Base + 60C
+  • Jump Height:   [[P_Base]+288] + 158
+  • HP:            P_Base + 6C4
+
+Train (Pointer: [[P_Base]+760]):
+  • Max Forward Speed:     +7D4
+  • Max Backward Speed:    +7D8
+  • Acceleration:          +818
+  • Current Speed:         +7E0
+  • Braking Multiplier:    +820
+  • Machine Gun DMG:       +968
+  • Machine Gun Slow:      +970
+  • Machine Gun Jam:       +A08
+  • Range Gun DMG:         +96C
+  • Range Gun Slow:        +974
+  • Flamethrower Jam:      +A2C
+
+Charles / Boss ([[P_Base]+8C0]):
+  • Face DMG Mult:     +754
+  • Body DMG Mult:     +758
+  • Legs DMG Mult:     +75C
+  • Face Slow Mult:    +760
+  • Body Slow Mult:    +764
+  • Legs Slow Mult:    +768
+  • DMG to Player:     +788
+  • DMG to Train:      +78C
+  • Can Damage?:       +891 (set to 0)
+  • Chase Speed:       +900
+
+================================================================================
+3. TELEPORT SCRIPTS (LUA)
+================================================================================
+
+-- Get Player Position Pointer
+local Pl = getAddressSafe("[[P_Base]+290]+1D0")
+
+-- Teleport to Train
+local Tr = getAddressSafe("[[[P_Base]+760]+130]+11C")
+writeFloat(Pl, readFloat(Tr))
+writeFloat(Pl+0x4, readFloat(Tr+0x4))
+writeFloat(Pl+0x8, readFloat(Tr+0x8) + 150)
+
+-- Teleport to Waypoint
+local Wp = getAddressSafe("[WayPoint_]+11C")
+writeFloat(Pl, readFloat(Wp))
+writeFloat(Pl+0x4, readFloat(Wp+0x4))
+writeFloat(Pl+0x8, readFloat(Wp+0x8) + 100)
+
+================================================================================
+4. KEY TELEPORT LOCATIONS (X, Y, Z)
+================================================================================
+
+White Paint:     34444.91,  -7389.33,  11984.31
+Grey Paint:      74586.34, -11458.88,   7592.30
+Purple Paint:    40517.16,  31598.76,  13554.06
+Green Paint:    108192.41,  64067.79,   7956.70
+Orange Paint:   111047.50,  83613.88,   8999.24
+
+(You can find more quest item / NPC locations in the original table under "Locations")
+
+================================================================================
+5. MAIN CHEATS (LUA / AA)
+================================================================================
+
+-- God Mode / Infinite HP
+writeFloat(P_Base + 0x6C4, 999999)
+
+-- Max Player Speeds
+writeFloat(P_Base + 0x608, 9999)   -- Sprint
+writeFloat(P_Base + 0x60C, 9999)   -- Walk
+writeFloat([[P_Base]+288]+0x158, 9999) -- Jump
+
+-- Train God Mode
+local Train = getAddressSafe("[[P_Base]+760]")
+writeFloat(Train + 0x7D4, 999999)   -- Forward Speed
+writeFloat(Train + 0x7D8, 999999)   -- Backward Speed
+writeFloat(Train + 0x818, 999999)   -- Acceleration
+
+-- No Weapon Overheat / Jam
+local MGJam  = Train + 0xA08
+local RGJam  = Train + 0xA20
+local FTJam  = Train + 0xA2C
+writeFloat(MGJam, 0)
+writeFloat(RGJam, 0)
+writeFloat(FTJam, 0)
+
+-- One-Hit Kill Weapons
+writeFloat(Train + 0x968, 999999)  -- MG DMG
+writeFloat(Train + 0x96C, 999999)  -- Range Gun DMG
+
+-- Charles Can't Hurt You
+writeByte([[P_Base]+8C0] + 0x891, 0)
+
+-- Charles Max DMG (for fun)
+writeFloat([[P_Base]+8C0] + 0x754, 999999) -- Face
+writeFloat([[P_Base]+8C0] + 0x758, 999999) -- Body
+writeFloat([[P_Base]+8C0] + 0x75C, 999999) -- Legs
+
+================================================================================
+6. DEACTIVATE ALL SCRIPTS
+================================================================================
+
+{$lua}
+local al = getAddressList()
+for i = 0, al.Count - 1 do
+  if al[i].Type == vtAutoAssembler then
+    al[i].Active = false
+  end
+end
+{$asm}
+
+================================================================================
+7. QUICK LUA HELPER FUNCTIONS
+================================================================================
+
+function Teleport(x, y, z)
+  local Pl = getAddressSafe("[[P_Base]+290]+1D0")
+  writeFloat(Pl, x)
+  writeFloat(Pl+4, y)
+  writeFloat(Pl+8, z)
+end
+
+-- Example usage:
+-- Teleport(34444.91, -7389.33, 11984.31)  -- White Paint
+
+================================================================================
+END OF COMPILATION
+================================================================================
+
+How to use:
+1. Find P_Base with the first AOB
+2. Use the offsets above
+3. Paste Lua scripts into Cheat Engine's Lua window or as Auto Assembler scripts
+4. For best results, run the game first, then attach CE
+
+All values and scripts extracted from the provided Cheat Table.
+Update AOBs if the game gets patched.
